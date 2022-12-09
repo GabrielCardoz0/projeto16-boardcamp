@@ -14,6 +14,13 @@ const nameSchema = Joi.object({
     name:Joi.string().required()
 })
 
+const clientSchema = Joi.object({
+    name: Joi.string().required(),
+    phone: Joi.string().required(),
+    cpf:Joi.string().required(),
+    birthday:Joi.string().required()
+});
+
 
 
 
@@ -40,7 +47,7 @@ app.post("/categories", async (req,res) => {
 
         if(categoriesList.rows.length > 0 ) return res.sendStatus(409);
 
-        await connection.query(`INSERT INTO categories (name) VALUES ($1)`, [name]);
+        await connection.query("INSERT INTO categories (name) VALUES ($1)", [name]);
 
         res.sendStatus(201);
 
@@ -79,24 +86,55 @@ app.post("/categories", async (req,res) => {
 // });
 
 
-// app.get("/customers?:cpf" , async(req,res) => {
-//     try{
-//         const { cpf } = req.query;
+app.get("/customers?:cpf" , async(req,res) => {
+    try{
+        const { cpf } = req.query;
 
-//         if(cpf) return res.send("tem cpf");
+        if(cpf) return res.send("tem cpf");
 
-//         res.send("não tem cpf")
-//         // const clientsList = await connection.query("SELECT * FROM customers;");
+        const clientsList = await connection.query("SELECT * FROM customers;");
 
-//         // res.send(clientsList.rows);
+        res.send(clientsList.rows)
 
-        
+    }catch(err){
+        console.log(err);
+        res.sendStatus(500);
+    };
+});
 
-//     }catch(err){
-//         console.log(err);
-//         res.sendStatus(500);
-//     };
-// });
+app.post("/customers" ,async(req,res) => {
+    try{
+        const new_client = req.body;
+
+        const {name,phone,cpf,birthday} = req.body;
+
+
+        const validation = clientSchema.validate(new_client, {abortEarly:false});
+
+        if(validation.error) {
+            const errorsList = validation.error.details.map(d => d.message);
+            return res.status(422).send(errorsList);
+        };
+
+        const clientsList = await connection.query("SELECT * FROM customers;");
+
+        const cpfList = clientsList.rows.map(c => c.cpf);
+
+        if(cpfList.includes(cpf)) return res.sendStatus(409);
+
+        //veriricar a data enviada!!!!!!!!!!!!!!!
+        //
+        //
+
+        await connection.query("INSERT INTO customers (name,phone,cpf,birthday) VALUES ($1, $2, $3, $4)", [name,phone,cpf,birthday]);
+
+        res.sendStatus(201);
+
+    }catch(err){
+        console.log(err);
+        res.sendStatus(500);
+    };
+});
 
 app.listen(4000);
 
