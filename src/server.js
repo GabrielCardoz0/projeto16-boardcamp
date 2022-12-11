@@ -57,11 +57,18 @@ app.post("/categories", async (req,res) => {
     };
 });
 
-app.get("/games" , async (req,res) => {
+app.get("/games?:name" , async (req,res) => {
     try{
         const gamesList = await connection.query('SELECT games.*, categories.name AS "categoryName" FROM games JOIN categories ON games."categoryId" = categories.id ;');
 
-        //get com jogos que começam com "ba"
+        const {name} = req.query;
+
+        if(name){
+            const gamesListFilterted = await connection.query(`
+            
+            SELECT games.*, categories.name AS "categoryName" FROM games JOIN categories ON games."categoryId" = categories.id  WHERE games.name LIKE '%${name}%';`);
+            return res.send(gamesListFilterted.rows);
+        };
 
         res.send(gamesList.rows);
 
