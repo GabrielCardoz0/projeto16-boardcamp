@@ -16,7 +16,7 @@ const nameSchema = Joi.object({
 
 const clientSchema = Joi.object({
     name: Joi.string().required(),
-    phone: Joi.string().required(),
+    phone: Joi.string().required().min(10).max(11),
     cpf:Joi.string().required().min(11).max(11),
     birthday:Joi.string().required()
 });
@@ -92,20 +92,34 @@ app.post("/games" , async (req,res) => {
     }; 
 });
 
-app.get("/customers?:cpf" || "/customers/:id", async(req,res) => {
+app.get("/customers?:cpf", async(req,res) => {
     try{
-        const { cpf } = req.query;
+            const { cpf } = req.query;
+
+            if(cpf){
+                const clientsList = await connection.query(`SELECT * FROM customers WHERE cpf LIKE '%${cpf}%';`);
+                return res.send(clientsList.rows);
+            };
 
 
-        if(cpf){
-            const clientsList = await connection.query(`SELECT * FROM customers WHERE cpf LIKE '%${cpf}%';`);
-            return res.send(clientsList.rows);
-        };
+            const clientsList = await connection.query("SELECT * FROM customers;");
+            res.send(clientsList.rows);
 
+    }catch(err){
+        console.log(err);
+        res.sendStatus(500);
+    };
+});
 
-        const clientsList = await connection.query("SELECT * FROM customers;");
-        res.send(clientsList.rows);
+app.get("/customers/:id", async(req,res) => {
+    try{
+            const { id } = req.params;
 
+            const clientsList = await connection.query(`SELECT * FROM customers WHERE id = ${id}`);
+
+            if(clientsList.rows.length === 0) return res.sendStatus(404);
+
+            res.send(clientsList.rows);
     }catch(err){
         console.log(err);
         res.sendStatus(500);
@@ -145,6 +159,8 @@ app.post("/customers" ,async(req,res) => {
         res.sendStatus(500);
     };
 });
+
+
 
 
 
