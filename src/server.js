@@ -160,7 +160,28 @@ app.post("/customers" ,async(req,res) => {
     };
 });
 
+app.put("/customers/:id" , async(req,res) => {
+    try{
+      const {name, phone, cpf, birthday} = req.body;
+      const {id} = req.params
 
+      const validation = clientSchema.validate(req.body, {abortEarly:false});
+
+        if(validation.error) {
+            const errorsList = validation.error.details.map(d => d.message);
+            return res.status(422).send(errorsList);
+        };
+
+        const cpfList = await connection.query(`UPDATE customers SET name='${name}', phone='${phone}', cpf='${cpf}', birthday='${birthday}' WHERE id =${id};`);
+      
+      res.sendStatus(200); 
+      
+      
+    }catch(err){
+        console.log(err);
+        res.sendStatus(500);
+    };    
+});
 
 
 
