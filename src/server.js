@@ -17,7 +17,7 @@ const nameSchema = Joi.object({
 const clientSchema = Joi.object({
     name: Joi.string().required(),
     phone: Joi.string().required(),
-    cpf:Joi.string().required(),
+    cpf:Joi.string().required().min(11).max(11),
     birthday:Joi.string().required()
 });
 
@@ -57,44 +57,47 @@ app.post("/categories", async (req,res) => {
     };
 });
 
-// app.get("/games" , async (req,res) => {
-//     try{
-//         const gamesList = await connection.query("SELECT * FROM games;");
+app.get("/games" , async (req,res) => {
+    try{
+        const gamesList = await connection.query('SELECT games.*, categories.name AS "categoryName" FROM games JOIN categories ON games."categoryId" = categories.id ;');
 
-//         res.send(gamesList.rows);
+        //get com jogos que começam com "ba"
 
-//     }catch(err){
-//         console.log(err);
-//         res.sendStatus(500);
-//     };
-// });
+        res.send(gamesList.rows);
 
-// app.post("/games" , async (req,res) => {
-//     try{
-//         const jogo = req.body;
+    }catch(err){
+        console.log(err);
+        res.sendStatus(500);
+    };
+});
 
-//         res.send(jogo);
+app.post("/games" , async (req,res) => {
+    try{
+        const {name,image,stockTotal,categoryId,pricePerDay} = req.body;
 
-//         // const result = await connection.query("INSERT INTO games (jogo) VALUES ($1);", [jogo]);
+        const result = await connection.query('INSERT INTO games (name,image,"stockTotal","categoryId","pricePerDay") VALUES ($1, $2, $3, $4, $5);', [name,image,stockTotal,categoryId,pricePerDay]);
 
-//         // console.log(result.rows);
+        res.sendStatus(201);
 
-//     }catch(err){
-//         console.log(err);
-//         res.sendStatus(500);
-//     }; 
-// });
+    }catch(err){
+        console.log(err);
+        res.sendStatus(500);
+    }; 
+});
 
-
-app.get("/customers?:cpf" , async(req,res) => {
+app.get("/customers?:cpf" || "/customers/:id", async(req,res) => {
     try{
         const { cpf } = req.query;
 
-        if(cpf) return res.send("tem cpf");
+
+        if(cpf){
+            const clientsList = await connection.query(`SELECT * FROM customers WHERE cpf LIKE '%${cpf}%';`);
+            return res.send(clientsList.rows);
+        };
+
 
         const clientsList = await connection.query("SELECT * FROM customers;");
-
-        res.send(clientsList.rows)
+        res.send(clientsList.rows);
 
     }catch(err){
         console.log(err);
@@ -135,6 +138,8 @@ app.post("/customers" ,async(req,res) => {
         res.sendStatus(500);
     };
 });
+
+
 
 app.listen(4000);
 
