@@ -9,10 +9,7 @@ const router = Router();
 router.use(categoriesRouter);
 router.use(gamesRouter);
 router.use(customersRouter);
-
-
-
-router.use(rentalsRouter)
+router.use(rentalsRouter);
 
 
 export default router;
