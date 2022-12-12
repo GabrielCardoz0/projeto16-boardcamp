@@ -10,3 +10,12 @@ app.use(cors());
 app.use(router);
 
 app.listen(4000);
+
+// app.get("/rentals", async(req,res) => {
+//     try{
+//         res.send("OI")
+//     }catch(err){
+//         console.log(err);
+//         res.sendStatus(500);
+//     };    
+// });

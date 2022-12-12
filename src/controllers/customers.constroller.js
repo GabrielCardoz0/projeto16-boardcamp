@@ -1,5 +1,7 @@
 import clientSchema from "../models/schemas.js";
 import connection from "../database.js";
+import dayjs from "dayjs";
+
 
 export async function customersGetCpf(req,res) {
     try{
@@ -40,6 +42,10 @@ export async function customersPost(req,res){
 
         const {name,phone,cpf,birthday} = req.body;
 
+        const birthdayDate = dayjs(birthday).format("YYYY-MM-DD");
+
+        if(birthday !== birthdayDate) return res.sendStatus(400);
+
 
         const validation = clientSchema.validate(new_client, {abortEarly:false});
 
@@ -54,10 +60,6 @@ export async function customersPost(req,res){
 
         if(cpfList.includes(cpf)) return res.sendStatus(409);
 
-        //veriricar a data enviada!!!!!!!!!!!!!!!
-        //
-        //
-
         await connection.query("INSERT INTO customers (name,phone,cpf,birthday) VALUES ($1, $2, $3, $4)", [name,phone,cpf,birthday]);
 
         res.sendStatus(201);
@@ -71,7 +73,15 @@ export async function customersPost(req,res){
 export async function customersPut(req,res){
     try{
       const {name, phone, cpf, birthday} = req.body;
-      const {id} = req.params
+
+      const {id} = req.params;
+
+
+      const birthdayDate = dayjs(birthday).format("YYYY-MM-DD");
+
+      if(birthday !== birthdayDate) return res.sendStatus(400);
+
+      
 
       const validation = clientSchema.validate(req.body, {abortEarly:false});
 
@@ -80,7 +90,7 @@ export async function customersPut(req,res){
             return res.status(422).send(errorsList);
         };
 
-        await connection.query(`UPDATE customers SET name='${name}', phone='${phone}', cpf='${cpf}', birthday='${birthday}' WHERE id =${id};`);
+        await connection.query(`UPDATE customers SET name='${name}', phone='${phone}', cpf='${cpf}', birthday='${birthdayDate}' WHERE id =${id};`);
       
       res.sendStatus(200); 
       
